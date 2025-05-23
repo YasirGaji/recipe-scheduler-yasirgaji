@@ -6,7 +6,11 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      '@types/node':
+        specifier: ^20.10.0
+        version: 20.17.50
 
   apps/api:
     dependencies:
@@ -53,6 +57,12 @@ importers:
       '@recipe-scheduler/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
+      '@types/better-sqlite3':
+        specifier: ^7.6.13
+        version: 7.6.13
+      better-sqlite3:
+        specifier: ^11.10.0
+        version: 11.10.0
       bullmq:
         specifier: ^4.15.0
         version: 4.18.2

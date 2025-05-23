@@ -2,7 +2,8 @@ import 'dotenv/config';
 import { Worker } from 'bullmq';
 import IORedis from 'ioredis';
 import { Expo } from 'expo-server-sdk';
-import type { NotificationPayload } from '@recipe-scheduler/shared-types';
+import Database from 'better-sqlite3';
+import path from 'path';
 
 const connection = new IORedis({
   host: 'localhost',
@@ -12,27 +13,37 @@ const connection = new IORedis({
 
 const expo = new Expo();
 
-// Mock push tokens storage - in real app would query database
-const mockPushTokens: Record<string, string> = {};
+// Connect to same database as API
+const dbPath = path.resolve(__dirname, '../../api/recipe-scheduler.db');
+const db = new Database(dbPath);
+
+const getPushToken = (userId: string): string | undefined => {
+  const stmt = db.prepare('SELECT token FROM push_tokens WHERE userId = ?');
+  const result = stmt.get(userId) as { token: string } | undefined;
+  return result?.token;
+};
 
 const worker = new Worker('reminder', async (job) => {
   const { eventId, title, eventTime, userId } = job.data;
   
   console.log(`Processing reminder for event ${eventId}: ${title}`);
   
-  // Get user's push token (mock for now)
-  const pushToken = mockPushTokens[userId] || 'ExponentPushToken[mock-token]';
+  const pushToken = getPushToken(userId);
+  
+  if (!pushToken) {
+    console.log(`📱 NOTIFICATION (No push token): "${title}" reminder - Event at ${eventTime}`);
+    return;
+  }
   
   if (!Expo.isExpoPushToken(pushToken)) {
-    console.log(`Invalid push token for user ${userId}, logging notification`);
-    console.log(`📱 NOTIFICATION: "${title}" reminder - Event at ${eventTime}`);
+    console.log(`📱 NOTIFICATION (Invalid token): "${title}" reminder - Event at ${eventTime}`);
     return;
   }
   
   try {
     const messages = [{
       to: pushToken,
-      sound: 'default',
+      sound: 'default' as const,
       title: 'Recipe Reminder',
       body: `Time to: ${title}`,
       data: { eventId, eventTime }
@@ -46,8 +57,7 @@ const worker = new Worker('reminder', async (job) => {
     }
   } catch (error) {
     console.error('Failed to send push notification:', error);
-    // Log to console as fallback
-    console.log(`📱 NOTIFICATION: "${title}" reminder - Event at ${eventTime}`);
+    console.log(`📱 NOTIFICATION (Fallback): "${title}" reminder - Event at ${eventTime}`);
   }
 }, { connection });
 

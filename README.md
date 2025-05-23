@@ -15,13 +15,15 @@ A full-stack cooking event reminder system built with Node.js, React Native (Exp
 ```
 recipe-scheduler/
 ├── apps/
-│   ├── api/           # Node.js + TypeScript backend
-│   ├── worker/        # Queue worker service  
-│   └── mobile/        # React Native (Expo)
+│   ├── api/             # Fastify REST API (TypeScript)
+│   ├── worker/          # BullMQ worker service
+│   └── mobile/          # React Native + Expo app
 ├── packages/
-│   ├── shared-types/  # Shared TypeScript types
-│   └── config/        # Shared configs
-└── docker/            # Docker configuration
+│   ├── shared-types/    # Shared TypeScript types
+│   └── config/          # Shared configurations
+├── docker/              # Docker configuration files
+├── scripts/             # Development & deployment scripts
+└── data/                # SQLite database (git-ignored)
 ```
 
 ## 🚀 Quick Start
@@ -33,50 +35,50 @@ recipe-scheduler/
 - Redis server
 - Expo CLI
 - Android Studio (for Android) or Xcode (for iOS)
+- Expo Go app on your phone
+- Docker Desktop (for Docker setup)
 
 ### Installation
 
-1. **Clone and install dependencies:**
+### Option 1: Docker Setup (Recommended)
 
 ```bash
+# 1. Clone the repository
+git clone <repository-url>
+cd recipe-scheduler
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Start Docker Desktop
+
+# 4. Run with Docker
+make docker-up
+# or
+./scripts/docker-run.sh
+```
+
+### Option 2: Local Development
+
+```bash
+# 1. Clone and install
 git clone <repository-url>
 cd recipe-scheduler
 pnpm install
-```
 
-2. **Start Redis server:**
+# 2. Start Redis
+brew services start redis  # macOS
+# or
+docker run -d -p 6379:6379 redis  # Using Docker
 
-```bash
-redis-server --port 6379
-```
-
-3. **Set up environment variables:**
-
-```bash
-# In apps/api/.env
-REMINDER_LEAD_MINUTES=15
-```
-
-4. **Start the backend services:**
-
-```bash
-# Terminal 1: API Server
-pnpm dev:api
-
-# Terminal 2: Worker Service
-pnpm dev:worker
-```
-
-5. **Start the mobile app:**
-
-```bash
-# Terminal 3: Mobile App
-pnpm dev:mobile
+# 3. Run all services
+make dev
+# or
+./scripts/local-run.sh  # Unix/macOS
+./scripts/local-run.bat # Windows
 ```
 
 ## 📱 Mobile App Features
-
-### ✅ Completed Features
 
 - **Event List**: View all scheduled cooking events
 - **Create Events**: Add new events with title and datetime
@@ -84,9 +86,6 @@ pnpm dev:mobile
 - **API Integration**: Real-time sync with backend
 - **Navigation**: Bottom tab navigation between screens
 - **Notifications Screen**: Mock display for push notifications
-
-### 🚧 In Progress
-
 - **Date-Time Picker**: Native date/time selection
 - **Detail View**: Edit existing events
 - **Swipe to Delete**: Gesture-based deletion
@@ -171,11 +170,32 @@ pnpm test --filter @recipe-scheduler/api
 
 ## 📦 Production Deployment
 
-### Docker Setup
+### Docker Configuration and Setup
+
+### Multi-Architecture Support
+
+The Docker images support both `linux/amd64` and `linux/arm64` platforms.
+
+### Services
+
+- **redis**: Redis server for queue management
+- **api**: Fastify REST API server
+- **worker**: BullMQ worker for processing reminders
+
+### Commands
 
 ```bash
-# Build and run with Docker Compose
-docker-compose up --build
+# Start all services
+make docker-up
+
+# View logs
+make docker-logs
+
+# Stop services
+make docker-down
+
+# Rebuild images
+docker-compose build
 ```
 
 ### Environment Variables
@@ -186,6 +206,27 @@ NODE_ENV=production
 REMINDER_LEAD_MINUTES=15
 REDIS_URL=redis://localhost:6379
 DATABASE_URL=file:./recipe-scheduler.db
+```
+
+## 📝 Development Commands
+
+### Makefile Commands
+
+```bash
+make help         # Show all commands
+make install      # Install dependencies
+make dev          # Run locally
+make docker-up    # Start with Docker
+make docker-down  # Stop Docker services
+make clean        # Clean build artifacts
+```
+
+### Package Scripts
+
+```bash
+pnpm dev:api      # Run API only
+pnpm dev:worker   # Run worker only
+pnpm dev:mobile   # Run mobile only
 ```
 
 ## 🛠️ Tech Stack
@@ -229,7 +270,7 @@ DATABASE_URL=file:./recipe-scheduler.db
 - Expo Push API integration
 - Database integration for push tokens
 
-### ✅ Completed (2.3 Frontend - Partial)
+### ✅ Completed (2.3 Frontend)
 
 - Basic React Native app structure
 - Event list view with delete
@@ -237,17 +278,20 @@ DATABASE_URL=file:./recipe-scheduler.db
 - Navigation system
 - API integration
 - Notifications screen (mock)
-
-### 🚧 In Progress (2.3 Frontend - Remaining)
-
 - Native date-time picker
 - Event detail/edit view
 - Swipe gesture support
 - Theme toggle (light/dark)
 - Real push notification handling
 
+### ✅ Completed (2.4 DevOps - Docker configuration)
+
+- Multi-stage Dockerfiles
+- Docker Compose setup
+- Cross-platform support
+- Development scripts
+
 ### ⏳ Pending
 
-- **2.4 DevOps**: Docker configuration
 - **2.5 Testing**: Jest test suites
 - **2.6 Documentation**: Complete setup guide

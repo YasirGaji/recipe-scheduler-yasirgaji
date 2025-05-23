@@ -2,6 +2,8 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { eventsRoutes } from './routes/events';
 import { devicesRoutes } from './routes/devices';
+import 'dotenv/config';
+
 
 const server = Fastify({ logger: true });
 

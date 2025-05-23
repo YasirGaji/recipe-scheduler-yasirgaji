@@ -5,9 +5,16 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "npm run dev -w apps/api",
-    "dev:worker": "npm run dev -w apps/worker",
-    "dev:mobile": "npm run start -w apps/mobile"
+    "dev": "./scripts/local-run.sh",
+    "dev:api": "pnpm --filter @recipe-scheduler/api dev",
+    "dev:worker": "pnpm --filter @recipe-scheduler/worker dev",
+    "dev:mobile": "pnpm --filter mobile start",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:build": "docker-compose build",
+    "install": "pnpm install",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules"
   },
   "dependencies": {
     "@types/node": "^20.10.0"

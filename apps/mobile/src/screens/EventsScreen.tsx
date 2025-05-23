@@ -9,26 +9,29 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Event } from '@recipe-scheduler/shared-types';
+import { useTheme } from '../context/ThemeContext';
+import { RootStackParamList } from '@/types/navigation';
 
 const API_BASE = 'http://10.0.2.2:3000/api';
 
+type EventsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'EventsList'>;
+
 interface Props {
-  navigation: {
-    navigate: (screen: string, params?: any) => void;
-  };
+  navigation: EventsScreenNavigationProp;
 }
 
 export default function EventsScreen({ navigation }: Props) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
+  const { colors } = useTheme();
 
   const loadEvents = async () => {
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE}/events`);
       const data = await response.json();
-      // Sort by eventTime (soonest first)
       const sortedEvents = data.sort((a: Event, b: Event) => 
         new Date(a.eventTime).getTime() - new Date(b.eventTime).getTime()
       );
@@ -41,7 +44,6 @@ export default function EventsScreen({ navigation }: Props) {
 
   useEffect(() => {
     loadEvents();
-    // Set up focus listener to refresh when returning from detail screen
     const unsubscribe = navigation.addListener('focus', loadEvents);
     return unsubscribe;
   }, [navigation]);
@@ -82,7 +84,7 @@ export default function EventsScreen({ navigation }: Props) {
   const renderEvent = ({ item }: { item: Event }) => (
     <Swipeable renderRightActions={() => renderRightActions(item.id)}>
       <TouchableOpacity
-        style={styles.eventCard}
+        style={[styles.eventCard, { backgroundColor: colors.card }]}
         onPress={() =>
           navigation.navigate('EventDetail', {
             event: item,
@@ -90,15 +92,17 @@ export default function EventsScreen({ navigation }: Props) {
           })
         }
       >
-        <Text style={styles.eventTitle}>{item.title}</Text>
+        <Text style={[styles.eventTitle, { color: colors.text }]}>{item.title}</Text>
         <Text style={styles.eventTime}>{formatDate(item.eventTime)}</Text>
-        <Text style={styles.tapHint}>Tap to edit • Swipe left to delete</Text>
+        <Text style={[styles.tapHint, { color: colors.subtext }]}>
+          Tap to edit • Swipe left to delete
+        </Text>
       </TouchableOpacity>
     </Swipeable>
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={events}
         renderItem={renderEvent}
@@ -108,8 +112,12 @@ export default function EventsScreen({ navigation }: Props) {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No events scheduled</Text>
-            <Text style={styles.emptySubtext}>Add your first cooking event!</Text>
+            <Text style={[styles.emptyText, { color: colors.text }]}>
+              No events scheduled
+            </Text>
+            <Text style={[styles.emptySubtext, { color: colors.subtext }]}>
+              Add your first cooking event!
+            </Text>
           </View>
         }
       />
@@ -120,10 +128,8 @@ export default function EventsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   eventCard: {
-    backgroundColor: 'white',
     padding: 16,
     marginHorizontal: 16,
     marginVertical: 6,
@@ -138,7 +144,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#333',
   },
   eventTime: {
     fontSize: 14,
@@ -148,7 +153,6 @@ const styles = StyleSheet.create({
   },
   tapHint: {
     fontSize: 12,
-    color: '#999',
     fontStyle: 'italic',
   },
   deleteAction: {
@@ -173,11 +177,9 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    color: '#666',
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
   },
 });

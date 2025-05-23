@@ -10,29 +10,22 @@ import {
   Platform,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { Event } from '@recipe-scheduler/shared-types';
+import { useTheme } from '../context/ThemeContext';
+import { RootStackParamList } from '@/types/navigation';
 
 const API_BASE = 'http://10.0.2.2:3000/api';
 
-interface Props {
-  route: {
-    params: {
-      event: Event;
-      onUpdate: () => void;
-    };
-  };
-  navigation: {
-    goBack: () => void;
-  };
-}
+type Props = NativeStackScreenProps<RootStackParamList, 'EventDetail'>;
 
 export default function EventDetailScreen({ route, navigation }: Props) {
   const { event, onUpdate } = route.params;
-  
   const [title, setTitle] = useState(event.title);
   const [date, setDate] = useState(new Date(event.eventTime));
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const { colors } = useTheme();
 
   const onDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -109,22 +102,38 @@ export default function EventDetailScreen({ route, navigation }: Props) {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.form}>
-        <Text style={styles.label}>Event Title</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Event Title</Text>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              color: colors.text,
+            }
+          ]}
           value={title}
           onChangeText={setTitle}
           placeholder="e.g., Bake sourdough bread"
+          placeholderTextColor={colors.subtext}
         />
 
-        <Text style={styles.label}>Date & Time</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Date & Time</Text>
         <TouchableOpacity 
-          style={styles.dateButton} 
+          style={[
+            styles.dateButton,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+            }
+          ]} 
           onPress={() => setShowDatePicker(true)}
         >
-          <Text style={styles.dateText}>{formatDateTime(date)}</Text>
+          <Text style={[styles.dateText, { color: colors.text }]}>
+            {formatDateTime(date)}
+          </Text>
         </TouchableOpacity>
 
         <View style={styles.dateTimeButtons}>
@@ -176,7 +185,6 @@ export default function EventDetailScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   form: {
     padding: 20,
@@ -185,28 +193,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#333',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: 'white',
     marginBottom: 20,
   },
   dateButton: {
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
-    backgroundColor: 'white',
     marginBottom: 10,
   },
   dateText: {
     fontSize: 16,
-    color: '#333',
   },
   dateTimeButtons: {
     flexDirection: 'row',

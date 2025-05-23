@@ -4,15 +4,17 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import { ThemeProvider } from './src/context/ThemeContext';
 import EventsScreen from './src/screens/EventsScreen';
 import AddEventScreen from './src/screens/AddEventScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
+import type { RootStackParamList, TabParamList } from './src/types/navigation';
 
-const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator<TabParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function EventsStack() {
   return (
@@ -31,59 +33,33 @@ function EventsStack() {
   );
 }
 
-function AppNavigator() {
-  const { colors, isDark } = useTheme();
-
-  return (
-    <NavigationContainer
-      theme={{
-        dark: isDark,
-        colors: {
-          primary: colors.primary,
-          background: colors.background,
-          card: colors.card,
-          text: colors.text,
-          border: colors.border,
-          notification: colors.primary,
-        },
-      }}
-    >
-      <Tab.Navigator
-        screenOptions={{
-          tabBarActiveTintColor: colors.primary,
-          tabBarInactiveTintColor: colors.subtext,
-          tabBarStyle: { backgroundColor: colors.card },
-          headerStyle: { backgroundColor: colors.card },
-          headerTintColor: colors.text,
-        }}
-      >
-        <Tab.Screen 
-          name="Events" 
-          component={EventsStack}
-          options={{ headerShown: false }}
-        />
-        <Tab.Screen 
-          name="Add" 
-          component={AddEventScreen}
-          options={{ title: 'Add Event' }}
-        />
-        <Tab.Screen 
-          name="Settings" 
-          component={NotificationsScreen}
-          options={{ title: 'Settings' }}
-        />
-      </Tab.Navigator>
-    </NavigationContainer>
-  );
-}
-
 export default function App() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider>
-        <AppNavigator />
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider>
+          <NavigationContainer>
+            <Tab.Navigator>
+              <Tab.Screen 
+                name="Events" 
+                component={EventsStack}
+                options={{ headerShown: false }}
+              />
+              <Tab.Screen 
+                name="Add" 
+                component={AddEventScreen}
+                options={{ title: 'Add Event' }}
+              />
+              <Tab.Screen 
+                name="Settings" 
+                component={NotificationsScreen}
+                options={{ title: 'Settings' }}
+              />
+            </Tab.Navigator>
+          </NavigationContainer>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }

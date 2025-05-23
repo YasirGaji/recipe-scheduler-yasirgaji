@@ -10,12 +10,27 @@ import {
   Platform,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import type { Event } from '@recipe-scheduler/shared-types';
 
 const API_BASE = 'http://10.0.2.2:3000/api';
 
-export default function AddEventScreen() {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState(new Date());
+interface Props {
+  route: {
+    params: {
+      event: Event;
+      onUpdate: () => void;
+    };
+  };
+  navigation: {
+    goBack: () => void;
+  };
+}
+
+export default function EventDetailScreen({ route, navigation }: Props) {
+  const { event, onUpdate } = route.params;
+  
+  const [title, setTitle] = useState(event.title);
+  const [date, setDate] = useState(new Date(event.eventTime));
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -36,15 +51,15 @@ export default function AddEventScreen() {
     }
   };
 
-  const createEvent = async () => {
+  const updateEvent = async () => {
     if (!title.trim()) {
       Alert.alert('Error', 'Please enter an event title');
       return;
     }
 
     try {
-      const response = await fetch(`${API_BASE}/events`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE}/events/${event.id}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -55,15 +70,38 @@ export default function AddEventScreen() {
       });
 
       if (response.ok) {
-        Alert.alert('Success', 'Event created successfully!');
-        setTitle('');
-        setDate(new Date());
+        Alert.alert('Success', 'Event updated successfully!');
+        onUpdate();
+        navigation.goBack();
       } else {
-        Alert.alert('Error', 'Failed to create event');
+        Alert.alert('Error', 'Failed to update event');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to create event');
+      Alert.alert('Error', 'Failed to update event');
     }
+  };
+
+  const deleteEvent = async () => {
+    Alert.alert(
+      'Delete Event',
+      'Are you sure you want to delete this event?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await fetch(`${API_BASE}/events/${event.id}`, { method: 'DELETE' });
+              onUpdate();
+              navigation.goBack();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete event');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const formatDateTime = (date: Date) => {
@@ -123,8 +161,12 @@ export default function AddEventScreen() {
           />
         )}
 
-        <TouchableOpacity style={styles.button} onPress={createEvent}>
-          <Text style={styles.buttonText}>Create Event</Text>
+        <TouchableOpacity style={styles.updateButton} onPress={updateEvent}>
+          <Text style={styles.buttonText}>Update Event</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.deleteButton} onPress={deleteEvent}>
+          <Text style={styles.buttonText}>Delete Event</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -169,7 +211,7 @@ const styles = StyleSheet.create({
   dateTimeButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 30,
   },
   smallButton: {
     backgroundColor: '#007AFF',
@@ -183,12 +225,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  button: {
+  updateButton: {
     backgroundColor: '#007AFF',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 10,
+    marginBottom: 15,
+  },
+  deleteButton: {
+    backgroundColor: '#ff4444',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
   },
   buttonText: {
     color: 'white',

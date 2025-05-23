@@ -4,84 +4,128 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
+  Switch,
 } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 export default function NotificationsScreen() {
+  const { isDark, toggleTheme, colors } = useTheme();
+
+  const dynamicStyles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: 20,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 10,
+      color: colors.text,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.subtext,
+      marginBottom: 30,
+    },
+    section: {
+      marginBottom: 30,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 15,
+      color: colors.text,
+    },
+    themeToggle: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: colors.card,
+      padding: 16,
+      borderRadius: 8,
+      marginBottom: 20,
+    },
+    themeText: {
+      fontSize: 16,
+      color: colors.text,
+    },
+    mockNotification: {
+      backgroundColor: colors.card,
+      padding: 16,
+      borderRadius: 8,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    notificationTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginBottom: 4,
+      color: colors.text,
+    },
+    notificationBody: {
+      fontSize: 14,
+      color: colors.text,
+      marginBottom: 8,
+    },
+    notificationTime: {
+      fontSize: 12,
+      color: colors.subtext,
+    },
+    note: {
+      fontSize: 14,
+      color: colors.subtext,
+      fontStyle: 'italic',
+      textAlign: 'center',
+    },
+  });
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Notifications</Text>
-        <Text style={styles.subtitle}>
-          Push notifications will appear here when reminders are sent.
-        </Text>
+    <ScrollView style={dynamicStyles.container}>
+      <View style={dynamicStyles.content}>
+        <Text style={dynamicStyles.title}>Settings & Notifications</Text>
         
-        <View style={styles.mockNotification}>
-          <Text style={styles.notificationTitle}>Recipe Reminder</Text>
-          <Text style={styles.notificationBody}>
-            Time to: Bake sourdough bread
+        <View style={dynamicStyles.section}>
+          <Text style={dynamicStyles.sectionTitle}>Appearance</Text>
+          <View style={dynamicStyles.themeToggle}>
+            <Text style={dynamicStyles.themeText}>
+              Dark Mode {isDark ? 'On' : 'Off'}
+            </Text>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: '#767577', true: '#007AFF' }}
+              thumbColor={isDark ? '#f5dd4b' : '#f4f3f4'}
+            />
+          </View>
+        </View>
+
+        <View style={dynamicStyles.section}>
+          <Text style={dynamicStyles.sectionTitle}>Recent Notifications</Text>
+          <Text style={dynamicStyles.subtitle}>
+            Push notifications will appear here when reminders are sent.
           </Text>
-          <Text style={styles.notificationTime}>
-            15 minutes ago
+          
+          <View style={dynamicStyles.mockNotification}>
+            <Text style={dynamicStyles.notificationTitle}>Recipe Reminder</Text>
+            <Text style={dynamicStyles.notificationBody}>
+              Time to: Bake sourdough bread
+            </Text>
+            <Text style={dynamicStyles.notificationTime}>
+              15 minutes ago
+            </Text>
+          </View>
+          
+          <Text style={dynamicStyles.note}>
+            This is a mock notification. Real notifications will appear here
+            when the worker service sends reminders.
           </Text>
         </View>
-        
-        <Text style={styles.note}>
-          This is a mock notification. Real notifications will appear here
-          when the worker service sends reminders.
-        </Text>
       </View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 30,
-  },
-  mockNotification: {
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  notificationTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  notificationBody: {
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 8,
-  },
-  notificationTime: {
-    fontSize: 12,
-    color: '#999',
-  },
-  note: {
-    fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-});

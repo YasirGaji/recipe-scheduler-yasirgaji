@@ -29,8 +29,12 @@ export async function eventsRoutes(fastify: FastifyInstance) {
       const { title, eventTime } = validation.data;
       const userId = (request.headers['user-id'] as string) || 'default-user';
 
+      const eventId = `${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+
       const event: Event = {
-        id: eventIdCounter.toString(),
+        id: eventId,
         userId,
         title,
         eventTime,
@@ -44,7 +48,7 @@ export async function eventsRoutes(fastify: FastifyInstance) {
         event.title,
         event.userId
       );
-      eventIdCounter++;
+      // eventIdCounter++;
 
       return reply.code(201).send(event);
     }

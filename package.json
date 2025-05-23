@@ -1,0 +1,9 @@
+{
+  "name": "recipe-scheduler-yasirgaji",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:api": "npm run dev -w apps/api",
+    "dev:worker": "npm run dev -w apps/worker", 
+    "dev:mobile": "npm run start -w apps/mobile"
+  }
+}

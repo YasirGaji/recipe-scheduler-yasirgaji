@@ -1,7 +1,8 @@
 import Database from 'better-sqlite3';
 import type { Event, PushToken } from '@recipe-scheduler/shared-types';
 
-const db = new Database('recipe-scheduler.db');
+const dbPath = process.env.DATABASE_PATH || 'recipe-scheduler.db';
+const db = new Database(dbPath);
 
 // Initialize tables
 db.exec(`

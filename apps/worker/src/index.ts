@@ -6,15 +6,14 @@ import Database from 'better-sqlite3';
 import path from 'path';
 
 const connection = new IORedis({
-  host: 'localhost',
-  port: 6379,
+  host: process.env.REDIS_HOST || 'localhost',
+  port: Number(process.env.REDIS_PORT) || 6379,
   maxRetriesPerRequest: 3
 });
 
 const expo = new Expo();
 
-// Connect to same database as API
-const dbPath = path.resolve(__dirname, '../../api/recipe-scheduler.db');
+const dbPath = process.env.DATABASE_PATH || path.resolve(__dirname, '../../api/recipe-scheduler.db');
 const db = new Database(dbPath);
 
 const getPushToken = (userId: string): string | undefined => {

@@ -1,12 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { pushTokensDb } from '../services/database';
 
 const DeviceTokenSchema = z.object({
   token: z.string().min(1)
 });
-
-// In-memory storage
-const pushTokens: { userId: string; token: string }[] = [];
 
 export async function devicesRoutes(fastify: FastifyInstance) {
   // POST /devices - Register push token
@@ -19,13 +17,7 @@ export async function devicesRoutes(fastify: FastifyInstance) {
     const userId = request.headers['user-id'] as string || 'default-user';
     const { token } = validation.data;
 
-    // Remove existing token for this user
-    const existingIndex = pushTokens.findIndex(pt => pt.userId === userId);
-    if (existingIndex !== -1) {
-      pushTokens.splice(existingIndex, 1);
-    }
-
-    pushTokens.push({ userId, token });
+    pushTokensDb.upsert(userId, token);
     return reply.code(201).send({ success: true });
   });
 }

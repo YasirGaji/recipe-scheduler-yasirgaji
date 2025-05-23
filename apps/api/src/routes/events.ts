@@ -1,14 +1,18 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { CreateEventPayload, Event } from '@recipe-scheduler/shared-types';
+import { eventsDb } from '../services/database';
 
 const CreateEventSchema = z.object({
   title: z.string().min(1),
   eventTime: z.string().datetime()
 });
 
-// In-memory storage for now
-const events: Event[] = [];
+const UpdateEventSchema = z.object({
+  title: z.string().min(1).optional(),
+  eventTime: z.string().datetime().optional()
+});
+
 let eventIdCounter = 1;
 
 export async function eventsRoutes(fastify: FastifyInstance) {
@@ -30,43 +34,47 @@ export async function eventsRoutes(fastify: FastifyInstance) {
       createdAt: new Date().toISOString()
     };
     
-    events.push(event);
+    eventsDb.create(event);
     eventIdCounter++;
-    
-    // TODO: Queue reminder job here
     
     return reply.code(201).send(event);
   });
 
   // GET /events?userId= - List events
-  fastify.get('/events', async (request, reply) => {
-    const userId = (request.query as any).userId || 'default-user';
-    const userEvents = events.filter(e => e.userId === userId);
-    return reply.send(userEvents);
+  fastify.get('/events', async (request) => {
+    const userId = (request.query as { userId?: string }).userId || 'default-user';
+    const userEvents = eventsDb.findByUserId(userId);
+    return userEvents;
   });
 
   // PATCH /events/:id - Update event
-  fastify.patch<{ Params: { id: string }, Body: Partial<CreateEventPayload> }>('/events/:id', async (request, reply) => {
-    const eventIndex = events.findIndex(e => e.id === request.params.id);
-    if (eventIndex === -1) {
+  fastify.patch<{ 
+    Params: { id: string }, 
+    Body: { title?: string; eventTime?: string } 
+  }>('/events/:id', async (request, reply) => {
+    const event = eventsDb.findById(request.params.id);
+    if (!event) {
       return reply.code(404).send({ error: 'Event not found' });
     }
 
-    const updates = request.body;
-    if (updates.title) events[eventIndex].title = updates.title;
-    if (updates.eventTime) events[eventIndex].eventTime = updates.eventTime;
+    const validation = UpdateEventSchema.safeParse(request.body);
+    if (!validation.success) {
+      return reply.code(400).send({ error: validation.error.issues });
+    }
 
-    return reply.send(events[eventIndex]);
+    eventsDb.update(request.params.id, validation.data);
+    const updatedEvent = eventsDb.findById(request.params.id);
+    return updatedEvent;
   });
 
   // DELETE /events/:id - Delete event
   fastify.delete<{ Params: { id: string } }>('/events/:id', async (request, reply) => {
-    const eventIndex = events.findIndex(e => e.id === request.params.id);
-    if (eventIndex === -1) {
+    const event = eventsDb.findById(request.params.id);
+    if (!event) {
       return reply.code(404).send({ error: 'Event not found' });
     }
 
-    events.splice(eventIndex, 1);
+    eventsDb.delete(request.params.id);
     return reply.code(204).send();
   });
 }
